@@ -25,21 +25,21 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
   std::lock_guard<std::mutex> lock(mtx);
   flog("got lock_guard mutex");
 
-  try {
-    // only create the logger if it doesn't exist
-    flog("Checking if spdlog logger exists");
-    if (!spdlog::get("logger")) {
-      flog("Creating spdlog logger");
-      auto slog = spdlog::basic_logger_mt("logger", "spdlog.txt");
-      spdlog::set_default_logger(slog);
-      spdlog::set_pattern("[%H:%M:%S] [%l] %v");
-      spdlog::flush_on(spdlog::level::info);
-      slog->info("spdlog initialized");
-    }
-  } catch (const std::exception& e) {
-    snprintf(logbuf, sizeof(logbuf), "spdlog initialization failed: %s", e.what());
-    flog(logbuf);
-  }
+  // try {
+  //   // only create the logger if it doesn't exist
+  //   flog("Checking if spdlog logger exists");
+  //   if (!spdlog::get("logger")) {
+  //     flog("Creating spdlog logger");
+  //     auto slog = spdlog::basic_logger_mt("logger", "spdlog.txt");
+  //     spdlog::set_default_logger(slog);
+  //     spdlog::set_pattern("[%H:%M:%S] [%l] %v");
+  //     spdlog::flush_on(spdlog::level::info);
+  //     slog->info("spdlog initialized");
+  //   }
+  // } catch (const std::exception& e) {
+  //   snprintf(logbuf, sizeof(logbuf), "spdlog initialization failed: %s", e.what());
+  //   flog(logbuf);
+  // }
 
 
   switch (fdwReason) {
