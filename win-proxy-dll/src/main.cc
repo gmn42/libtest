@@ -21,8 +21,13 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
 
   flog("testing lock_guard mutex\n");
 
-  std::mutex mtx;
-  std::lock_guard<std::mutex> lock(mtx);
+  try {
+    std::mutex mtx;
+    std::lock_guard<std::mutex> lock(mtx);
+  } catch (const std::exception& e) {
+    snprintf(logbuf, sizeof(logbuf), "Exception in lock_guard: %s", e.what());
+    flog(logbuf);
+  }
   flog("got lock_guard mutex");
 
   // try {
