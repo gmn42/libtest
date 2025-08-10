@@ -5,33 +5,25 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-
 //#include "patches/patches.h"
 
 void VersionDllInit();
+void flog(const char* message);
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
 {
   std::filesystem::path game_path;
-  //auto console = spdlog::stdout_color_mt("console");
 
-  // open log in append mode
-  FILE *flog = fopen("patchlog.txt", "a");
-  // Output current time to log
-  if (!flog) {
-    return FALSE; // Failed to open log file
-  } 
-  time_t now = time(nullptr);
-  struct tm* timeinfo = localtime(&now);  
-   fprintf(flog, "Log opened at %02d:%02d:%02d on %02d/%02d/%04d\n", 
-           timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec,
-           timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900);
-  fprintf(flog, "(version.dll entered with reason %d)\n", fdwReason);
-  fflush(flog);
-    // use spdlog to open a file logger
+  char logbuf[128];
+
+  snprintf(logbuf, sizeof(logbuf), "DllMain called with reason %d", fdwReason);
+  flog(logbuf);
+
   try {
     // only create the logger if it doesn't exist
+    flog("Checking if spdlog logger exists");
     if (!spdlog::get("logger")) {
+      flog("Creating spdlog logger");
       auto slog = spdlog::basic_logger_mt("logger", "spdlog.txt");
       spdlog::set_default_logger(slog);
       spdlog::set_pattern("[%H:%M:%S] [%l] %v");
@@ -39,46 +31,37 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
       slog->info("spdlog initialized");
     }
   } catch (const std::exception& e) {
-    fprintf(flog, "(spdlog initialization failed: %s)\n", e.what());
-    fflush(flog);
+    snprintf(logbuf, sizeof(logbuf), "spdlog initialization failed: %s", e.what());
+    flog(logbuf);
   }
-    //console->info("(spdlog) Game path: {}", game_path.string());
 
   switch (fdwReason) {
     case DLL_PROCESS_ATTACH:
+      flog("(DisableThreadLibraryCalls)");
 
-      fprintf(flog, "(DisableThreadLibraryCalls)\n");
-      fflush(flog); 
       DisableThreadLibraryCalls(hinstDLL);
 
-      fprintf(flog, "(GetModuleFileName)\n");
-      fflush(flog); 
       TCHAR szFileName[MAX_PATH];
       GetModuleFileName(NULL, szFileName, MAX_PATH);
 
       game_path = szFileName;
 
-      fprintf(flog, "(Game Path: %s)\n", game_path.string().c_str());
-      fflush(flog);
+      snprintf(logbuf, sizeof(logbuf), "Game path: %s", game_path.string().c_str());
+      flog(logbuf);
       if (!game_path.filename().generic_wstring().starts_with(L"prime")) {
         return TRUE;
       }
 
       // Since we are replacing version.dll, need the proper forwards
-      fprintf(flog, "(VersionDllInit)\n");
-      fflush(flog); 
+      flog("(VersionDllInit)");
       VersionDllInit();
 
-      fprintf(flog, "(Patch Initialization Starting)\n");
-      fflush(flog);
+      flog("(Patch Initialization Starting)");
 
-      fprintf(stdout, "(stdout) Game path: %s\n", game_path.string().c_str());
-      fflush(stdout);
+      snprintf(logbuf, sizeof(logbuf), "(stdout) Game path: %s", game_path.string().c_str());
+      flog(logbuf);
 
-      spdlog::info("Game path: {}", game_path.string());
-
-
-      fprintf(flog, "(Patch Initialization Complete)\n");
+      flog("(Patch Initialization Complete)");
 
       //ApplyPatches();
       break;
@@ -89,18 +72,34 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
     case DLL_PROCESS_DETACH:
       break;
   }
-  fclose(flog); 
   return TRUE;
 }
 
-void* operator new[](size_t size, const char* /*name*/, int /*flags*/, unsigned /*debugFlags*/, const char* /*file*/,
-                     int /*line*/)
+// function to handle file logging
+void flog(const char* message)
 {
-  return malloc(size);
+
+  // Create template for current time
+  std::time_t now = std::time(nullptr);
+  std::tm* timeinfo = std::localtime(&now);
+  char timebuf[80];
+  std::strftime(timebuf, sizeof(timebuf), "[%H:%M:%S] ", timeinfo);
+
+  FILE* flog = fopen("patchlog.txt", "a");
+  if (flog) {
+    fprintf(flog, "%s%s\n", timebuf, message);
+    fclose(flog);
+  }
 }
 
-void* operator new[](size_t size, size_t /*alignment*/, size_t /*alignmentOffset*/, const char* /*name*/, int /*flags*/,
-                     unsigned /*debugFlags*/, const char* /*file*/, int /*line*/)
-{
-  return malloc(size);
-}
+// void* operator new[](size_t size, const char* /*name*/, int /*flags*/, unsigned /*debugFlags*/, const char* /*file*/,
+//                      int /*line*/)
+// {
+//   return malloc(size);
+// }
+
+// void* operator new[](size_t size, size_t /*alignment*/, size_t /*alignmentOffset*/, const char* /*name*/, int /*flags*/,
+//                      unsigned /*debugFlags*/, const char* /*file*/, int /*line*/)
+// {
+//   return malloc(size);
+// }
