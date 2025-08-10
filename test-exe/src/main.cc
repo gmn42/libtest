@@ -17,16 +17,18 @@ int main() {
 
     // print the path of the loaded library
     char path[MAX_PATH];
-    if (GetModuleFileNameA(hModule, path, sizeof(path))) {
-        printf("Loaded version.dll from: %s\n", path);
-    } else {
-        printf("Failed to get module file name\n");
-    }
+    // if (GetModuleFileNameA(hModule, path, sizeof(path))) {
+    //     printf("Loaded version.dll from: %s\n", path);
+    // } else {
+    //     printf("Failed to get module file name\n");
+    // }
 
     // print version of loaded library
     typedef DWORD(WINAPI* GetFileVersionInfoSizeA_t)(LPCSTR, LPDWORD);
     typedef BOOL(WINAPI* GetFileVersionInfoA_t)(LPCSTR, DWORD, DWORD, LPVOID);
     typedef BOOL(WINAPI* VerQueryValueA_t)(LPCVOID, LPCSTR, LPVOID*, PUINT);
+
+    return 0;
 
     GetFileVersionInfoSizeA_t pGetFileVersionInfoSizeA = (GetFileVersionInfoSizeA_t)GetProcAddress(hModule, "GetFileVersionInfoSizeA");
     GetFileVersionInfoA_t pGetFileVersionInfoA = (GetFileVersionInfoA_t)GetProcAddress(hModule, "GetFileVersionInfoA");
