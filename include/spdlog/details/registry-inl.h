@@ -84,10 +84,14 @@ SPDLOG_INLINE void registry::initialize_logger(std::shared_ptr<logger> new_logge
 }
 
 SPDLOG_INLINE std::shared_ptr<logger> registry::get(const std::string &logger_name) {
-        FILE *logfile = fopen("patchlog.txt", "a");
-    fprintf(logfile, "spdlog::instance::get(): %s\n", logger_name.c_str());
+    FILE *logfile = fopen("patchlog.txt", "a");
+    fprintf(logfile, "spdlog::instance::get(): searching for %s, attempting to acquire lock on logger_map_mutex_\n", logger_name.c_str());
+    fflush(logfile);
+    std::lock_guard<std::mutex> lock(logger_map_mutex_);
+
+    fprintf(logfile, "spdlog::instance::get(): got lock on logger_map_mutex_\n");
+    fflush(logfile);
     fclose(logfile);
-    // std::lock_guard<std::mutex> lock(logger_map_mutex_);
     auto found = loggers_.find(logger_name);
     return found == loggers_.end() ? nullptr : found->second;
 }

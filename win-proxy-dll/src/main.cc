@@ -19,6 +19,12 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
   snprintf(logbuf, sizeof(logbuf), "DllMain called with reason %d", fdwReason);
   flog(logbuf);
 
+  flog("testing lock_guard mutex\n");
+
+  std::mutex mtx;
+  std::lock_guard<std::mutex> lock(mtx);
+  flog("got lock_guard mutex");
+
   try {
     // only create the logger if it doesn't exist
     flog("Checking if spdlog logger exists");
