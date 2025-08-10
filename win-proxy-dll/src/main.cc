@@ -13,6 +13,7 @@ void VersionDllInit();
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
 {
   std::filesystem::path game_path;
+  //auto console = spdlog::stdout_color_mt("console");
 
   // open log in append mode
   FILE *flog = fopen("patchlog.txt", "a");
@@ -22,11 +23,26 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
   } 
   time_t now = time(nullptr);
   struct tm* timeinfo = localtime(&now);  
-  fprintf(flog, "Log opened at %02d:%02d:%02d on %02d/%02d/%04d\n", 
-          timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec,
-          timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900);
+   fprintf(flog, "Log opened at %02d:%02d:%02d on %02d/%02d/%04d\n", 
+           timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec,
+           timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900);
   fprintf(flog, "(version.dll entered with reason %d)\n", fdwReason);
   fflush(flog);
+    // use spdlog to open a file logger
+  try {
+    // only create the logger if it doesn't exist
+    if (!spdlog::get("logger")) {
+      auto slog = spdlog::basic_logger_mt("logger", "spdlog.txt");
+      spdlog::set_default_logger(slog);
+      spdlog::set_pattern("[%H:%M:%S] [%l] %v");
+      spdlog::flush_on(spdlog::level::info);
+      slog->info("spdlog initialized");
+    }
+  } catch (const std::exception& e) {
+    fprintf(flog, "(spdlog initialization failed: %s)\n", e.what());
+    fflush(flog);
+  }
+    //console->info("(spdlog) Game path: {}", game_path.string());
 
   switch (fdwReason) {
     case DLL_PROCESS_ATTACH:
@@ -56,8 +72,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
       fprintf(flog, "(Patch Initialization Starting)\n");
       fflush(flog);
 
-      spdlog::info("(spdlog) Game path: {}", game_path.string());
-      //fprintf(stderr, "Game path: %s\n", game_path.string().c_str());
+      fprintf(stdout, "(stdout) Game path: %s\n", game_path.string().c_str());
+      fflush(stdout);
+
+      spdlog::info("Game path: {}", game_path.string());
+
 
       fprintf(flog, "(Patch Initialization Complete)\n");
 
