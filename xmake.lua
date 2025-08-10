@@ -3,7 +3,7 @@ set_project("patch-test")
 set_languages("c++20")
 
 --add_requires("eastl")
-add_requires("spdlog")
+add_requires("spdlog 1.14.1")
 --add_requires("toml++")
 --add_requires("nlohmann_json")
 --add_requires("libcurl", { configs = { zlib = true } })
@@ -11,6 +11,7 @@ add_requires("spdlog")
 
 if is_plat("windows") then
     includes("win-proxy-dll")
+    includes("test-exe")
     -- add_links('rpcrt4')
     -- add_links('runtimeobject')
 end

@@ -35,11 +35,12 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
     flog(logbuf);
   }
 
+
   switch (fdwReason) {
     case DLL_PROCESS_ATTACH:
-      flog("(DisableThreadLibraryCalls)");
+      //flog("(DisableThreadLibraryCalls)");
 
-      DisableThreadLibraryCalls(hinstDLL);
+      //DisableThreadLibraryCalls(hinstDLL);
 
       TCHAR szFileName[MAX_PATH];
       GetModuleFileName(NULL, szFileName, MAX_PATH);
