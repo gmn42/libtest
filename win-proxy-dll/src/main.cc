@@ -1,9 +1,7 @@
 #include <Windows.h>
 
 #include <filesystem>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/spdlog.h>
+#include <mutex>
 
 //#include "patches/patches.h"
 
@@ -29,23 +27,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
     flog(logbuf);
   }
   flog("got lock_guard mutex");
-
-  // try {
-  //   // only create the logger if it doesn't exist
-  //   flog("Checking if spdlog logger exists");
-  //   if (!spdlog::get("logger")) {
-  //     flog("Creating spdlog logger");
-  //     auto slog = spdlog::basic_logger_mt("logger", "spdlog.txt");
-  //     spdlog::set_default_logger(slog);
-  //     spdlog::set_pattern("[%H:%M:%S] [%l] %v");
-  //     spdlog::flush_on(spdlog::level::info);
-  //     slog->info("spdlog initialized");
-  //   }
-  // } catch (const std::exception& e) {
-  //   snprintf(logbuf, sizeof(logbuf), "spdlog initialization failed: %s", e.what());
-  //   flog(logbuf);
-  // }
-
 
   switch (fdwReason) {
     case DLL_PROCESS_ATTACH:
@@ -104,14 +85,14 @@ void flog(const char* message)
   }
 }
 
-// void* operator new[](size_t size, const char* /*name*/, int /*flags*/, unsigned /*debugFlags*/, const char* /*file*/,
-//                      int /*line*/)
-// {
-//   return malloc(size);
-// }
+void* operator new[](size_t size, const char* /*name*/, int /*flags*/, unsigned /*debugFlags*/, const char* /*file*/,
+                     int /*line*/)
+{
+  return malloc(size);
+}
 
-// void* operator new[](size_t size, size_t /*alignment*/, size_t /*alignmentOffset*/, const char* /*name*/, int /*flags*/,
-//                      unsigned /*debugFlags*/, const char* /*file*/, int /*line*/)
-// {
-//   return malloc(size);
-// }
+void* operator new[](size_t size, size_t /*alignment*/, size_t /*alignmentOffset*/, const char* /*name*/, int /*flags*/,
+                     unsigned /*debugFlags*/, const char* /*file*/, int /*line*/)
+{
+  return malloc(size);
+}
