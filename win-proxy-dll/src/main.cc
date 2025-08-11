@@ -14,10 +14,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpReserved*/)
 
   char logbuf[128];
 
+  flog("");
   snprintf(logbuf, sizeof(logbuf), "DllMain called with reason %d", fdwReason);
   flog(logbuf);
 
-  flog("testing lock_guard mutex\n");
+  flog("testing lock_guard mutex");
 
   try {
     std::mutex mtx;
